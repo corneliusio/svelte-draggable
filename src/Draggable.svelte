@@ -30,12 +30,6 @@
 
     onMount(async () => {
         await tick();
-
-        // Doesn't work.
-        // el.style.top = `${(sh - oh) / 2}px`;
-        // el.style.left = `${(sw - ow) / 2}px`;
-
-        // Works, but only after tick.
         py = (sh - oh) / 2;
         px = (sw - ow) / 2;
     });
