@@ -1,11 +1,16 @@
-<svelte:window on:mousemove={onMousemove} on:mouseup={onMouseup} />
+<svelte:window
+    bind:innerWidth={sw}
+    bind:innerHeight={sh}
+    on:mousemove={onMousemove}
+    on:mouseup={onMouseup}
+/>
 
-<span style={`transform: translate(${mx - ox}px, ${my - oy}px)`}
+<div
     bind:this={el}
     bind:offsetWidth={ow}
     bind:offsetHeight={oh}
     on:mousedown={onMousedown}
-></span>
+></div>
 
 <script>
     import { onMount, tick } from 'svelte';
@@ -17,23 +22,42 @@
         oy = 0,
         ow = 0,
         oh = 0,
+        px = 0,
+        py = 0,
+        sw = 0,
+        sh = 0,
         el;
 
     onMount(async () => {
         await tick();
-        mx = ox = parseInt(el.getBoundingClientRect().left + (ow / 2));
-        my = oy = parseInt(el.getBoundingClientRect().top + (oh / 2));
+
+        // Doesn't work.
+        // el.style.top = `${(sh - oh) / 2}px`;
+        // el.style.left = `${(sw - ow) / 2}px`;
+
+        // Works, but only after tick.
+        py = (sh - oh) / 2;
+        px = (sw - ow) / 2;
     });
 
+    $: if (el) {
+        el.style.top = `${Math.max(0, Math.min(py, sh - oh))}px`;
+        el.style.left = `${Math.max(0, Math.min(px, sw - ow))}px`;
+        el.style.transform = `translate(${mx - ox}px, ${my - oy}px)`;
+    }
+
     function onMousedown(event) {
+        ox = event.clientX;
+        oy = event.clientY;
         isDragging = true;
         onMousemove(event);
-        document.body.style.userSelect = 'none';
     }
 
     function onMouseup(event) {
+        px = parseInt(el.getBoundingClientRect().left);
+        py = parseInt(el.getBoundingClientRect().top);
+        mx = ox = my = oy = 0;
         isDragging = false;
-        document.body.style.userSelect = 'unset';
     }
 
     function onMousemove(event) {
@@ -45,14 +69,11 @@
 </script>
 
 <style>
-    span {
+    div {
         position: absolute;
-        top: 50%;
-        left: 50%;
         width: 5rem;
         height: 5rem;
         border-radius: 50%;
-        background-color: red;
-        border: 2px solid darkred;
+        background-color: #FFF;
     }
 </style>
